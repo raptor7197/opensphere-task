@@ -1,0 +1,105 @@
+{
+  "submissions": [
+    {
+      "id": 1760818969213,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "country": "Germany",
+      "visaType": "EU Blue Card",
+      "documents": [
+        {
+          "filename": "1760818969183-resume.txt",
+          "path": "uploads/1760818969183-resume.txt"
+        }
+      ],
+      "score": 33,
+      "summary": "Your application is likely to be rejected. You are missing several key documents.",
+      "submittedAt": "2025-10-18T20:22:49.214Z",
+      "apiKey": null
+    },
+    {
+      "id": 1760819941548,
+      "name": "test",
+      "email": "test@gmail.com",
+      "country": "Ireland",
+      "visaType": "Critical Skills Employment Permit",
+      "documents": [
+        {
+          "filename": "1760819941530-resume.pdf",
+          "path": "uploads/1760819941530-resume.pdf"
+        }
+      ],
+      "score": 33,
+      "summary": "Your application is likely to be rejected. You are missing several key documents.",
+      "submittedAt": "2025-10-18T20:39:01.548Z",
+      "apiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs"
+    },
+    {
+      "id": 1760819988041,
+      "name": "vamsi krishna ",
+      "email": "tae@te.com",
+      "country": "Poland",
+      "visaType": "Work Permit Type C",
+      "documents": [
+        {
+          "filename": "1760819988023-Internship_Report_Template.docx",
+          "path": "uploads/1760819988023-Internship_Report_Template.docx"
+        }
+      ],
+      "score": 33,
+      "summary": "Your application is likely to be rejected. You are missing several key documents.",
+      "submittedAt": "2025-10-18T20:39:48.041Z",
+      "apiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs"
+    },
+    {
+      "id": 1760820095158,
+      "name": "name",
+      "email": "name@name.com",
+      "country": "Netherlands",
+      "visaType": "Knowledge Migrant Permit",
+      "documents": [
+        {
+          "filename": "1760820095104-design.pdf",
+          "path": "uploads/1760820095104-design.pdf"
+        },
+        {
+          "filename": "1760820095117-TEAM ROLE AND RESPONSIBILITIES.pdf",
+          "path": "uploads/1760820095117-TEAM ROLE AND RESPONSIBILITIES.pdf"
+        },
+        {
+          "filename": "1760820095150-Internship_Report_Template.docx",
+          "path": "uploads/1760820095150-Internship_Report_Template.docx"
+        }
+      ],
+      "score": 85,
+      "summary": "Your application has a moderate to high chance of success. Ensure all submitted documents are accurate and complete.",
+      "submittedAt": "2025-10-18T20:41:35.158Z",
+      "apiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs"
+    },
+    {
+      "id": 1760820118509,
+      "name": "te",
+      "email": "te@te.com",
+      "country": "United States",
+      "visaType": "O-1B",
+      "documents": [
+        {
+          "filename": "1760820118382-LAB EXP 7 TRIGGERS.pdf",
+          "path": "uploads/1760820118382-LAB EXP 7 TRIGGERS.pdf"
+        },
+        {
+          "filename": "1760820118405-design.pdf",
+          "path": "uploads/1760820118405-design.pdf"
+        },
+        {
+          "filename": "1760820118416-TEAM ROLE AND RESPONSIBILITIES.pdf",
+          "path": "uploads/1760820118416-TEAM ROLE AND RESPONSIBILITIES.pdf"
+        }
+      ],
+      "score": 85,
+      "summary": "Your application has a moderate to high chance of success. Ensure all submitted documents are accurate and complete.",
+      "submittedAt": "2025-10-18T20:41:58.509Z",
+      "apiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs"
+    }
+  ]
+}

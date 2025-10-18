@@ -4,25 +4,110 @@ import { useState, useEffect } from 'react';
 const API_URL = 'http://localhost:3001';
 
 // A simple card to display the result
-const ResultCard = ({ result, onReset }) => (
-  <div className="w-full max-w-lg p-8 space-y-6 bg-gray-900 border border-gray-700 rounded-lg">
-    <h2 className="text-2xl font-bold text-center text-white">Evaluation Result</h2>
-    <div className="text-center">
-      <p className="text-lg text-gray-300">Your Score</p>
-      <p className="text-6xl font-bold text-green-400">{result.score}</p>
+const ResultCard = ({ result, onReset }) => {
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'text-green-400';
+    if (score >= 60) return 'text-yellow-400';
+    if (score >= 40) return 'text-orange-400';
+    return 'text-red-400';
+  };
+
+  const getLikelihoodColor = (likelihood) => {
+    switch (likelihood) {
+      case 'Excellent': return 'text-green-400 bg-green-900/20';
+      case 'Good': return 'text-green-300 bg-green-900/20';
+      case 'Fair': return 'text-yellow-400 bg-yellow-900/20';
+      case 'Low': return 'text-orange-400 bg-orange-900/20';
+      case 'Very Low': return 'text-red-400 bg-red-900/20';
+      default: return 'text-gray-400 bg-gray-800';
+    }
+  };
+
+  return (
+    <div className="w-full max-w-2xl p-8 space-y-6 bg-gray-900 border border-gray-700 rounded-lg">
+      <h2 className="text-2xl font-bold text-center text-white">Evaluation Result</h2>
+
+      <div className="text-center">
+        <p className="text-lg text-gray-300">Your Score</p>
+        <p className={`text-6xl font-bold ${getScoreColor(result.score)}`}>{result.score}/100</p>
+        <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mt-2 ${getLikelihoodColor(result.likelihood)}`}>
+          {result.likelihood} Chance of Success
+        </div>
+      </div>
+
+      {result.scores && (
+        <div className="bg-gray-800 border border-gray-700 rounded-md p-4">
+          <h3 className="text-lg font-semibold text-white mb-3">Score Breakdown</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-300">Education Qualification</span>
+              <span className="text-white font-medium">{result.scores.education || 0}/25</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Work Experience</span>
+              <span className="text-white font-medium">{result.scores.experience || 0}/20</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Salary/Income</span>
+              <span className="text-white font-medium">{result.scores.salary || 0}/20</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Document Completeness</span>
+              <span className="text-white font-medium">{result.scores.documents || 0}/15</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Recognition/Awards</span>
+              <span className="text-white font-medium">{result.scores.awards || 0}/10</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Language Proficiency</span>
+              <span className="text-white font-medium">{result.scores.language || 0}/5</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Employer Status</span>
+              <span className="text-white font-medium">{result.scores.employer || 0}/5</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-gray-800 border border-gray-700 rounded-md p-4">
+        <h3 className="text-lg font-semibold text-white mb-2">Summary</h3>
+        <p className="text-gray-300">{result.summary}</p>
+      </div>
+
+      {result.recommendations && result.recommendations.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-md p-4">
+          <h3 className="text-lg font-semibold text-white mb-3">Recommendations for Improvement</h3>
+          <div className="space-y-2">
+            {result.recommendations.map((rec, index) => (
+              <div key={index} className="p-3 bg-gray-700 rounded border-l-4 border-green-500">
+                <div className="flex justify-between items-start">
+                  <span className="font-medium text-green-400">{rec.category}</span>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    rec.priority === 'High' ? 'bg-red-600 text-white' :
+                    rec.priority === 'Medium' ? 'bg-yellow-600 text-white' :
+                    'bg-blue-600 text-white'
+                  }`}>
+                    {rec.priority}
+                  </span>
+                </div>
+                <p className="text-gray-300 text-sm mt-1">{rec.suggestion}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={onReset}
+        className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-md hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+      >
+        Start New Evaluation
+      </button>
     </div>
-    <div className="text-center p-4 bg-gray-800 border border-gray-700 rounded-md">
-      <p className="text-lg font-semibold text-white">Summary</p>
-      <p className="text-gray-300">{result.summary}</p>
-    </div>
-    <button
-      onClick={onReset}
-      className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-md hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
-    >
-      Start New Evaluation
-    </button>
-  </div>
-);
+  );
+};
 
 
 export default function App() {
@@ -33,6 +118,13 @@ export default function App() {
     apiKey: '',
     country: '',
     visaType: '',
+    educationLevel: '',
+    experienceYears: '',
+    currentSalary: '',
+    languageProficiency: '',
+    hasAwards: false,
+    awards: [],
+    hasRecognizedEmployer: false
   });
   const [documents, setDocuments] = useState([]);
   const [requiredDocs, setRequiredDocs] = useState([]);
@@ -102,6 +194,13 @@ export default function App() {
     submissionData.append('apiKey', formData.apiKey);
     submissionData.append('country', formData.country);
     submissionData.append('visaType', formData.visaType);
+    submissionData.append('educationLevel', formData.educationLevel);
+    submissionData.append('experienceYears', formData.experienceYears);
+    submissionData.append('currentSalary', formData.currentSalary);
+    submissionData.append('languageProficiency', formData.languageProficiency);
+    submissionData.append('hasAwards', formData.hasAwards);
+    submissionData.append('awards', JSON.stringify(formData.awards));
+    submissionData.append('hasRecognizedEmployer', formData.hasRecognizedEmployer);
     for (let i = 0; i < documents.length; i++) {
       submissionData.append('documents', documents[i]);
     }
@@ -129,7 +228,20 @@ export default function App() {
   };
   
   const resetForm = () => {
-    setFormData({ name: '', email: '', apiKey: '', country: '', visaType: '' });
+    setFormData({
+      name: '',
+      email: '',
+      apiKey: '',
+      country: '',
+      visaType: '',
+      educationLevel: '',
+      experienceYears: '',
+      currentSalary: '',
+      languageProficiency: '',
+      hasAwards: false,
+      awards: [],
+      hasRecognizedEmployer: false
+    });
     setDocuments([]);
     setRequiredDocs([]);
     setEvaluationResult(null);
@@ -201,6 +313,84 @@ export default function App() {
                   <option key={visa} value={visa}>{visa}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <select
+                name="educationLevel"
+                value={formData.educationLevel}
+                onChange={handleInputChange}
+                required
+                className="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">Select Education Level</option>
+                <option value="High School">High School</option>
+                <option value="Professional Certification">Professional Certification</option>
+                <option value="Bachelor">Bachelor's Degree</option>
+                <option value="Master">Master's Degree</option>
+                <option value="PhD">PhD/Doctorate</option>
+              </select>
+              <input
+                type="number"
+                name="experienceYears"
+                placeholder="Years of Experience"
+                value={formData.experienceYears}
+                onChange={handleInputChange}
+                required
+                min="0"
+                max="50"
+                className="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                type="number"
+                name="currentSalary"
+                placeholder="Current Annual Salary (USD)"
+                value={formData.currentSalary}
+                onChange={handleInputChange}
+                required
+                min="0"
+                className="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
+              />
+              <select
+                name="languageProficiency"
+                value={formData.languageProficiency}
+                onChange={handleInputChange}
+                required
+                className="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">Language Proficiency</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Fluent">Fluent</option>
+                <option value="Native">Native</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="flex items-center space-x-3 text-gray-300">
+                <input
+                  type="checkbox"
+                  name="hasAwards"
+                  checked={formData.hasAwards}
+                  onChange={(e) => setFormData(prev => ({ ...prev, hasAwards: e.target.checked }))}
+                  className="w-4 h-4 text-green-600 bg-gray-800 border-gray-600 rounded focus:ring-green-500 focus:ring-2"
+                />
+                <span>I have professional awards/recognition</span>
+              </label>
+              <label className="flex items-center space-x-3 text-gray-300">
+                <input
+                  type="checkbox"
+                  name="hasRecognizedEmployer"
+                  checked={formData.hasRecognizedEmployer}
+                  onChange={(e) => setFormData(prev => ({ ...prev, hasRecognizedEmployer: e.target.checked }))}
+                  className="w-4 h-4 text-green-600 bg-gray-800 border-gray-600 rounded focus:ring-green-500 focus:ring-2"
+                />
+                <span>Employer is a recognized sponsor</span>
+              </label>
             </div>
 
             {requiredDocs.length > 0 && (

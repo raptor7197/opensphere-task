@@ -100,6 +100,279 @@
       "summary": "Your application has a moderate to high chance of success. Ensure all submitted documents are accurate and complete.",
       "submittedAt": "2025-10-18T20:41:58.509Z",
       "apiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs"
+    },
+    {
+      "user": "temp-1760820881190",
+      "country": "Ireland",
+      "visaType": "Critical Skills Employment Permit",
+      "documents": [
+        {
+          "filename": "1760820871139-resume.pdf",
+          "originalName": "resume.pdf",
+          "path": "uploads/1760820871139-resume.pdf",
+          "size": 135877,
+          "mimetype": "application/pdf",
+          "uploadedAt": "2025-10-18T20:54:51.203Z"
+        },
+        {
+          "filename": "1760820871144-Internship_Report_Template.docx",
+          "originalName": "Internship_Report_Template.docx",
+          "path": "uploads/1760820871144-Internship_Report_Template.docx",
+          "size": 102624,
+          "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "uploadedAt": "2025-10-18T20:54:51.203Z"
+        },
+        {
+          "filename": "1760820871146-Internship_Report_Template(1).docx",
+          "originalName": "Internship_Report_Template(1).docx",
+          "path": "uploads/1760820871146-Internship_Report_Template(1).docx",
+          "size": 102624,
+          "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "uploadedAt": "2025-10-18T20:54:51.203Z"
+        }
+      ],
+      "scores": {
+        "education": 0,
+        "experience": 12,
+        "salary": 20,
+        "documents": 15,
+        "awards": 0,
+        "language": 3,
+        "employer": 2
+      },
+      "totalScore": 52,
+      "cappedScore": 52,
+      "summary": "Moderate profile for Ireland Critical Skills Employment Permit. Your application has a fair chance, but significant improvements are recommended to increase success probability.",
+      "recommendations": [
+        {
+          "category": "Education",
+          "suggestion": "Consider obtaining a higher degree or professional certification to meet visa requirements.",
+          "priority": "High"
+        },
+        {
+          "category": "Recognition",
+          "suggestion": "Seek professional recognition, awards, or certifications in your field.",
+          "priority": "Low"
+        },
+        {
+          "category": "Language",
+          "suggestion": "Improve your language proficiency through formal training or certification.",
+          "priority": "Medium"
+        }
+      ],
+      "likelihood": "Fair",
+      "partnerApiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs",
+      "emailSent": false,
+      "_id": "eval-1760820891233",
+      "createdAt": "2025-10-18T20:54:51.233Z"
+    },
+    {
+      "user": "temp-1760820912747",
+      "country": "Ireland",
+      "visaType": "Critical Skills Employment Permit",
+      "documents": [
+        {
+          "filename": "1760820902706-resume.pdf",
+          "originalName": "resume.pdf",
+          "path": "uploads/1760820902706-resume.pdf",
+          "size": 135877,
+          "mimetype": "application/pdf",
+          "uploadedAt": "2025-10-18T20:55:22.752Z"
+        },
+        {
+          "filename": "1760820902711-Internship_Report_Template.docx",
+          "originalName": "Internship_Report_Template.docx",
+          "path": "uploads/1760820902711-Internship_Report_Template.docx",
+          "size": 102624,
+          "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "uploadedAt": "2025-10-18T20:55:22.752Z"
+        },
+        {
+          "filename": "1760820902712-Internship_Report_Template(1).docx",
+          "originalName": "Internship_Report_Template(1).docx",
+          "path": "uploads/1760820902712-Internship_Report_Template(1).docx",
+          "size": 102624,
+          "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "uploadedAt": "2025-10-18T20:55:22.752Z"
+        }
+      ],
+      "scores": {
+        "education": 0,
+        "experience": 12,
+        "salary": 20,
+        "documents": 15,
+        "awards": 0,
+        "language": 3,
+        "employer": 2
+      },
+      "totalScore": 52,
+      "cappedScore": 52,
+      "summary": "Moderate profile for Ireland Critical Skills Employment Permit. Your application has a fair chance, but significant improvements are recommended to increase success probability.",
+      "recommendations": [
+        {
+          "category": "Education",
+          "suggestion": "Consider obtaining a higher degree or professional certification to meet visa requirements.",
+          "priority": "High"
+        },
+        {
+          "category": "Recognition",
+          "suggestion": "Seek professional recognition, awards, or certifications in your field.",
+          "priority": "Low"
+        },
+        {
+          "category": "Language",
+          "suggestion": "Improve your language proficiency through formal training or certification.",
+          "priority": "Medium"
+        }
+      ],
+      "likelihood": "Fair",
+      "partnerApiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs",
+      "emailSent": false,
+      "_id": "eval-1760820922774",
+      "createdAt": "2025-10-18T20:55:22.774Z"
+    },
+    {
+      "user": "temp-1760821039912",
+      "country": "United States",
+      "visaType": "H-1B",
+      "documents": [
+        {
+          "filename": "1760821029837-test-resume.txt",
+          "originalName": "test-resume.txt",
+          "path": "uploads/1760821029837-test-resume.txt",
+          "size": 591,
+          "mimetype": "text/plain",
+          "uploadedAt": "2025-10-18T20:57:19.912Z"
+        }
+      ],
+      "scores": {
+        "education": 20,
+        "experience": 12,
+        "salary": 18,
+        "documents": 3,
+        "awards": 4,
+        "language": 5,
+        "employer": 5
+      },
+      "totalScore": 67,
+      "cappedScore": 67,
+      "summary": "Strong profile for United States H-1B. Your application has a good chance of success, though there may be areas for improvement to strengthen your case.",
+      "recommendations": [
+        {
+          "category": "Documents",
+          "suggestion": "Ensure all required documents are properly prepared and submitted.",
+          "priority": "High"
+        },
+        {
+          "category": "Recognition",
+          "suggestion": "Seek professional recognition, awards, or certifications in your field.",
+          "priority": "Low"
+        }
+      ],
+      "likelihood": "Good",
+      "partnerApiKey": null,
+      "emailSent": false,
+      "_id": "eval-1760821039928",
+      "createdAt": "2025-10-18T20:57:19.928Z"
+    },
+    {
+      "user": "temp-1760821641939",
+      "country": "United States",
+      "visaType": "H-1B",
+      "documents": [
+        {
+          "filename": "1760821631898-test-resume.txt",
+          "originalName": "test-resume.txt",
+          "path": "uploads/1760821631898-test-resume.txt",
+          "size": 591,
+          "mimetype": "text/plain",
+          "uploadedAt": "2025-10-18T21:07:21.940Z"
+        }
+      ],
+      "scores": {
+        "education": 20,
+        "experience": 12,
+        "salary": 18,
+        "documents": 3,
+        "awards": 0,
+        "language": 5,
+        "employer": 5
+      },
+      "totalScore": 63,
+      "cappedScore": 63,
+      "summary": "Moderate profile for United States H-1B. Your application has a fair chance, but significant improvements are recommended to increase success probability.",
+      "recommendations": [
+        {
+          "category": "Documents",
+          "suggestion": "Ensure all required documents are properly prepared and submitted.",
+          "priority": "High"
+        },
+        {
+          "category": "Recognition",
+          "suggestion": "Seek professional recognition, awards, or certifications in your field.",
+          "priority": "Low"
+        }
+      ],
+      "likelihood": "Fair",
+      "partnerApiKey": null,
+      "emailSent": false,
+      "_id": "eval-1760821641974",
+      "createdAt": "2025-10-18T21:07:21.974Z"
+    },
+    {
+      "user": "temp-1760821915851",
+      "country": "Poland",
+      "visaType": "Work Permit Type C",
+      "documents": [
+        {
+          "filename": "1760821905828-resume.pdf",
+          "originalName": "resume.pdf",
+          "path": "uploads/1760821905828-resume.pdf",
+          "size": 135877,
+          "mimetype": "application/pdf",
+          "uploadedAt": "2025-10-18T21:12:05.864Z"
+        },
+        {
+          "filename": "1760821905830-AIAT_Internship_Offer_Vamsi Krishna P_signed.pdf",
+          "originalName": "AIAT_Internship_Offer_Vamsi Krishna P_signed.pdf",
+          "path": "uploads/1760821905830-AIAT_Internship_Offer_Vamsi Krishna P_signed.pdf",
+          "size": 101800,
+          "mimetype": "application/pdf",
+          "uploadedAt": "2025-10-18T21:12:05.864Z"
+        },
+        {
+          "filename": "1760821905832-6b888fb4-e86b-4dcf-befb-422ec9848cf5_REDACTED_20250930_2352.pdf",
+          "originalName": "6b888fb4-e86b-4dcf-befb-422ec9848cf5_REDACTED_20250930_2352.pdf",
+          "path": "uploads/1760821905832-6b888fb4-e86b-4dcf-befb-422ec9848cf5_REDACTED_20250930_2352.pdf",
+          "size": 4334,
+          "mimetype": "application/pdf",
+          "uploadedAt": "2025-10-18T21:12:05.864Z"
+        }
+      ],
+      "scores": {
+        "education": 20,
+        "experience": 12,
+        "salary": 20,
+        "documents": 15,
+        "awards": 0,
+        "language": 5,
+        "employer": 2
+      },
+      "totalScore": 74,
+      "cappedScore": 74,
+      "summary": "Strong profile for Poland Work Permit Type C. Your application has a good chance of success, though there may be areas for improvement to strengthen your case.",
+      "recommendations": [
+        {
+          "category": "Recognition",
+          "suggestion": "Seek professional recognition, awards, or certifications in your field.",
+          "priority": "Low"
+        }
+      ],
+      "likelihood": "Good",
+      "partnerApiKey": "AIzaSyCJI5YKzRQ5ZqavENegNeqIZokXlT8b8Bs",
+      "emailSent": false,
+      "_id": "eval-1760821925871",
+      "createdAt": "2025-10-18T21:12:05.871Z"
     }
   ]
 }

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Visa Submission</title>
+</head>
+<body>
+    <h1>Test Visa Evaluation Submission</h1>
+
+    <form id="testForm">
+        <div>
+            <label>Name:</label>
+            <input type="text" id="name" value="John Doe" required>
+        </div>
+        <div>
+            <label>Email:</label>
+            <input type="email" id="email" value="john@example.com" required>
+        </div>
+        <div>
+            <label>Country:</label>
+            <select id="country" required>
+                <option value="">Select Country</option>
+                <option value="United States">United States</option>
+                <option value="Germany">Germany</option>
+                <option value="Ireland">Ireland</option>
+            </select>
+        </div>
+        <div>
+            <label>Visa Type:</label>
+            <select id="visaType" required>
+                <option value="">Select Visa Type</option>
+                <option value="H-1B">H-1B</option>
+                <option value="EU Blue Card">EU Blue Card</option>
+                <option value="Critical Skills Employment Permit">Critical Skills Employment Permit</option>
+            </select>
+        </div>
+        <div>
+            <label>Education Level:</label>
+            <select id="educationLevel" required>
+                <option value="Bachelor">Bachelor's Degree</option>
+                <option value="Master">Master's Degree</option>
+                <option value="PhD">PhD</option>
+            </select>
+        </div>
+        <div>
+            <label>Experience Years:</label>
+            <input type="number" id="experienceYears" value="5" required>
+        </div>
+        <div>
+            <label>Current Salary:</label>
+            <input type="number" id="currentSalary" value="75000" required>
+        </div>
+        <div>
+            <label>Language Proficiency:</label>
+            <select id="languageProficiency" required>
+                <option value="Fluent">Fluent</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Intermediate">Intermediate</option>
+            </select>
+        </div>
+        <div>
+            <label>File:</label>
+            <input type="file" id="documents" accept=".pdf,.doc,.docx,.txt" required>
+        </div>
+        <div>
+            <label>API Key (optional):</label>
+            <input type="text" id="apiKey" value="">
+        </div>
+        <button type="submit">Submit Test</button>
+    </form>
+
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Submitting...';
+
+            try {
+                const formData = new FormData();
+                formData.append('name', document.getElementById('name').value);
+                formData.append('email', document.getElementById('email').value);
+                formData.append('country', document.getElementById('country').value);
+                formData.append('visaType', document.getElementById('visaType').value);
+                formData.append('educationLevel', document.getElementById('educationLevel').value);
+                formData.append('experienceYears', document.getElementById('experienceYears').value);
+                formData.append('currentSalary', document.getElementById('currentSalary').value);
+                formData.append('languageProficiency', document.getElementById('languageProficiency').value);
+                formData.append('hasAwards', 'false');
+                formData.append('awards', '[]');
+                formData.append('hasRecognizedEmployer', 'false');
+                formData.append('apiKey', document.getElementById('apiKey').value);
+
+                const fileInput = document.getElementById('documents');
+                if (fileInput.files.length > 0) {
+                    formData.append('documents', fileInput.files[0]);
+                }
+
+                console.log('Submitting to: http://localhost:3001/api/submissions');
+
+                const response = await fetch('http://localhost:3001/api/submissions', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Success result:', result);
+
+                resultDiv.innerHTML = `
+                    <h3>Success!</h3>
+                    <p><strong>Score:</strong> ${result.score}/100</p>
+                    <p><strong>Likelihood:</strong> ${result.likelihood}</p>
+                    <p><strong>Summary:</strong> ${result.summary}</p>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                resultDiv.innerHTML = `
+                    <h3>Error</h3>
+                    <p style="color: red;">${error.message}</p>
+                    <p>Check the browser console for more details.</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

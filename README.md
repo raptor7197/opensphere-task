@@ -135,34 +135,7 @@ curl -H "x-api-key: test-partner-key" "http://localhost:3001/api/partner/evaluat
    - **Backend API**: http://localhost:3001
    - **Partner Dashboard**: Use PartnerDashboard.jsx component
 
-### Demo Credentials
-- **Partner API Key**: `test-partner-key`
-- **Email**: Configure in `backend/.env` (optional)
 
-## 📧 Email Configuration
-
-To enable email sending, update `backend/.env`:
-```env
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-EMAIL_FROM=OpenSphere Visa Tool <noreply@opensphere.ai>
-```
-
-## 🎯 Business Value
-
-### For Immigration Law Firms
-- **Lead Quality Assessment**: Intelligent scoring identifies high-value prospects
-- **Client Communication**: Automated email delivery with detailed breakdowns
-- **Analytics Dashboard**: Track conversion rates and application success patterns
-- **White-label Integration**: Custom API keys for branded experiences
-
-### For Applicants
-- **Realistic Expectations**: Evidence-based scoring prevents unrealistic hopes
-- **Actionable Feedback**: Specific recommendations for profile improvement
-- **Multi-country Comparison**: Evaluate options across different visa programs
-- **Professional Presentation**: Clean, trustworthy interface builds confidence
 
 ## 🔮 Future Enhancements
 
@@ -179,21 +152,5 @@ EMAIL_FROM=OpenSphere Visa Tool <noreply@opensphere.ai>
 - **CDN Integration**: Optimized file upload and delivery
 - **Advanced Analytics**: Cohort analysis and success prediction
 
-## 📊 Demo Screenshots
-
-The application includes:
-1. **Professional Form Interface**: Dark theme matching OpenSphere branding
-2. **Detailed Results Display**: Score breakdown with recommendations
-3. **Partner Dashboard**: Analytics and lead management
-4. **Email Templates**: Professional result delivery
-
-## 🏆 Assignment Completion
-
-This implementation demonstrates:
-- ✅ **Technical Proficiency**: Full-stack development with modern practices
-- ✅ **Product Thinking**: User-centered design with business value focus
-- ✅ **Scalability Planning**: Extensible architecture for growth
-- ✅ **Security Awareness**: Input validation, API authentication, file restrictions
-- ✅ **Professional Polish**: Production-ready code with comprehensive documentation
 
 **Ready for production deployment with minimal additional configuration.**

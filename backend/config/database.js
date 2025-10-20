@@ -1,15 +1,20 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
+import mongoose from 'mongoose';
+import { logger } from './logger.js';
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/visa-tool');
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    // Use in-memory storage if MongoDB is not available for demo purposes
+    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('your_mongodb_uri')) {
+      logger.warn('MongoDB URI not configured. Using fallback mode without database persistence.');
+      return;
+    }
+
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    logger.info(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    // For development, we'll continue without MongoDB and use JSON file storage
-    console.log('Continuing with JSON file storage...');
+    logger.warn('MongoDB connection failed, continuing without database persistence:', error.message);
+    // Don't exit, allow the server to run without MongoDB for demo purposes
   }
 };
 
-module.exports = connectDB;
+export default connectDB;

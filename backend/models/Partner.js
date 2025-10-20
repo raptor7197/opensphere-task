@@ -1,13 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
 
 const partnerSchema = new mongoose.Schema({
   name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  company: {
     type: String,
     required: true,
     trim: true
@@ -16,57 +10,120 @@ const partnerSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    trim: true,
     lowercase: true
   },
   apiKey: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
-  hashedApiKey: {
+  company: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
-  allowedCountries: [{
-    type: String
-  }],
-  customScoreCap: {
+  website: {
+    type: String,
+    trim: true
+  },
+  contactPhone: {
+    type: String,
+    trim: true
+  },
+
+  // Plan and Limits
+  plan: {
+    type: String,
+    enum: ['free', 'basic', 'premium', 'enterprise'],
+    default: 'free'
+  },
+  monthlyLimit: {
     type: Number,
-    min: 0,
-    max: 100,
-    default: 85
+    default: 100
   },
+  currentMonthUsage: {
+    type: Number,
+    default: 0
+  },
+
+  // Status
   isActive: {
     type: Boolean,
     default: true
   },
-  evaluationsCount: {
+
+  // Settings
+  allowedDomains: [{
+    type: String
+  }],
+  webhookUrl: {
+    type: String
+  },
+  emailNotifications: {
+    type: Boolean,
+    default: true
+  },
+
+  // Statistics
+  totalEvaluations: {
     type: Number,
     default: 0
   },
-  lastAccessed: {
+  lastUsed: {
+    type: Date
+  },
+
+  // Billing
+  billingAddress: {
+    street: String,
+    city: String,
+    state: String,
+    country: String,
+    zipCode: String
+  },
+
+  // Metadata
+  registeredAt: {
+    type: Date,
+    default: Date.now
+  },
+  lastLoginAt: {
     type: Date
   }
 }, {
   timestamps: true
 });
 
-// Hash API key before saving
-partnerSchema.pre('save', async function(next) {
-  if (!this.isModified('apiKey')) return next();
+// Indexes
+partnerSchema.index({ apiKey: 1 });
+partnerSchema.index({ email: 1 });
+partnerSchema.index({ isActive: 1 });
 
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.hashedApiKey = await bcrypt.hash(this.apiKey, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+// Virtual for usage percentage
+partnerSchema.virtual('usagePercentage').get(function() {
+  return this.monthlyLimit > 0 ? (this.currentMonthUsage / this.monthlyLimit) * 100 : 0;
 });
 
-// Method to validate API key
-partnerSchema.methods.validateApiKey = async function(apiKey) {
-  return await bcrypt.compare(apiKey, this.hashedApiKey);
+// Method to check if partner can make requests
+partnerSchema.methods.canMakeRequest = function() {
+  return this.isActive && this.currentMonthUsage < this.monthlyLimit;
 };
 
-module.exports = mongoose.model('Partner', partnerSchema);
+// Method to increment usage
+partnerSchema.methods.incrementUsage = async function() {
+  this.currentMonthUsage += 1;
+  this.totalEvaluations += 1;
+  this.lastUsed = new Date();
+  return this.save();
+};
+
+// Static method to reset monthly usage (to be called by cron job)
+partnerSchema.statics.resetMonthlyUsage = async function() {
+  return this.updateMany({}, { currentMonthUsage: 0 });
+};
+
+const Partner = mongoose.model('Partner', partnerSchema);
+
+export default Partner;

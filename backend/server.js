@@ -1,468 +1,231 @@
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
-const multer = require('multer');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-// Import database connection and models
-const connectDB = require('./config/database');
-const User = require('./models/User');
-const Evaluation = require('./models/Evaluation');
-const Partner = require('./models/Partner');
+// Import configurations and middleware
+import connectDB from './config/database.js';
+import { logger } from './config/logger.js';
 
-// Import services and middleware
-const evaluationService = require('./services/evaluationService');
-const emailService = require('./services/emailService');
-const { authenticatePartner } = require('./middleware/partnerAuth');
+// Import routes
+import visaRoutes from './routes/visas.js';
+import submissionRoutes from './routes/submissions.js';
+import partnerRoutes from './routes/partners.js';
 
+// Load environment variables
+dotenv.config();
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure required directories exist
+const requiredDirs = ['uploads', 'logs'];
+requiredDirs.forEach(dir => {
+  const dirPath = path.join(__dirname, dir);
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+    logger.info(`Created directory: ${dirPath}`);
+  }
+});
+
+// Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Connect to MongoDB
-connectDB();
+// Trust proxy for accurate IP addresses
+app.set('trust proxy', 1);
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://yourdomain.com'] // Replace with your production domain
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+}));
 
-// Simple route to check if server is running
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Visa Evaluation Tool Backend is running!',
-    version: '2.0.0',
-    features: ['MongoDB Integration', 'Email Service', 'Partner API', 'Enhanced Scoring']
-  });
-});
-
-// Visa data configuration
-const visaData = {
-  "United States": {
-    visas: ["O-1A", "O-1B", "H-1B"],
-    documents: {
-      "O-1A": ["Résumé", "Personal Statement", "Letters of Recommendation"],
-      "O-1B": ["Résumé", "Portfolio", "Press Clippings"],
-      "H-1B": ["Résumé", "Employment Contract", "Educational Transcripts"],
-    }
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests',
+    message: 'Too many requests from this IP, please try again later.'
   },
-  "Ireland": {
-    visas: ["Critical Skills Employment Permit"],
-    documents: {
-      "Critical Skills Employment Permit": ["Résumé", "Employment Contract", "Police Report"]
-    }
-  },
-  "Poland": {
-    visas: ["Work Permit Type C"],
-    documents: {
-      "Work Permit Type C": ["Résumé", "Employment Contract", "Proof of Accommodation"]
-    }
-  },
-  "France": {
-    visas: ["Talent Passport", "Salarié en Mission"],
-    documents: {
-      "Talent Passport": ["Résumé", "Business Plan", "Proof of Financial Means"],
-      "Salarié en Mission": ["Résumé", "Assignment Letter", "Proof of Social Security"]
-    }
-  },
-  "Netherlands": {
-    visas: ["Knowledge Migrant Permit"],
-    documents: {
-      "Knowledge Migrant Permit": ["Résumé", "Employment Contract", "Health Insurance"]
-    }
-  },
-  "Germany": {
-    visas: ["EU Blue Card", "ICT Permit"],
-    documents: {
-      "EU Blue Card": ["Résumé", "University Degree", "Employment Contract"],
-      "ICT Permit": ["Résumé", "Assignment Letter", "Proof of Qualification"]
-    }
-  }
-};
-
-// API endpoint to get visa data
-app.get('/api/visas', (req, res) => {
-  res.json(visaData);
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname)
-  }
-});
+app.use(limiter);
 
-// File filter for validation
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain'
-  ];
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.'), false);
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB per file
-    files: 10 // Maximum 10 files
-  }
-});
-
-// Error handling middleware for multer
-app.use((error, req, res, next) => {
-  if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'File too large. Maximum size is 10MB per file.' });
-    }
-    if (error.code === 'LIMIT_FILE_COUNT') {
-      return res.status(400).json({ error: 'Too many files. Maximum 10 files allowed.' });
-    }
-    if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-      return res.status(400).json({ error: 'Unexpected field name for file upload.' });
-    }
-  }
-  if (error.message === 'Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.') {
-    return res.status(400).json({ error: error.message });
-  }
-  next(error);
-});
-
-// Enhanced submission endpoint
-app.post('/api/submissions', upload.array('documents'), async (req, res) => {
-  try {
-    const {
-      name, email, country, visaType, apiKey,
-      educationLevel, experienceYears, currentSalary,
-      languageProficiency, hasAwards, awards,
-      hasRecognizedEmployer
-    } = req.body;
-
-    const documents = req.files || [];
-
-    // Validate required fields
-    if (!name || !email || !country || !visaType) {
-      return res.status(400).json({
-        error: 'Missing required fields: name, email, country, and visaType are required.'
-      });
-    }
-
-    if (documents.length === 0) {
-      return res.status(400).json({
-        error: 'At least one document must be uploaded.'
-      });
-    }
-
-    // Create or find user
-    let user;
-    try {
-      user = await User.findOneAndUpdate(
-        { email: email.toLowerCase() },
-        {
-          name,
-          email: email.toLowerCase(),
-          educationLevel: educationLevel || 'Bachelor',
-          experienceYears: parseInt(experienceYears) || 2,
-          currentSalary: parseInt(currentSalary) || 50000,
-          languageProficiency: languageProficiency || 'Intermediate',
-          hasAwards: hasAwards === 'true' || hasAwards === true,
-          awards: awards ? JSON.parse(awards) : [],
-          hasRecognizedEmployer: hasRecognizedEmployer === 'true' || hasRecognizedEmployer === true
-        },
-        { upsert: true, new: true, runValidators: true }
-      );
-    } catch (dbError) {
-      console.log('MongoDB not available, using in-memory user data');
-      user = {
-        _id: `temp-${Date.now()}`,
-        name,
-        email: email.toLowerCase(),
-        educationLevel: educationLevel || 'Bachelor',
-        experienceYears: parseInt(experienceYears) || 2,
-        currentSalary: parseInt(currentSalary) || 50000,
-        languageProficiency: languageProficiency || 'Intermediate',
-        hasAwards: hasAwards === 'true' || hasAwards === true,
-        awards: awards ? JSON.parse(awards) : [],
-        hasRecognizedEmployer: hasRecognizedEmployer === 'true' || hasRecognizedEmployer === true
-      };
-    }
-
-    // Calculate evaluation using enhanced service
-    const evaluation = evaluationService.calculateScore(user, country, visaType, documents);
-
-    // Apply partner-specific score cap if API key provided
-    let finalScore = evaluation.cappedScore;
-    if (apiKey && apiKey !== '') {
-      try {
-        const partner = await Partner.findOne({ apiKey, isActive: true });
-        if (partner && partner.customScoreCap) {
-          finalScore = Math.min(evaluation.totalScore, partner.customScoreCap);
-        }
-      } catch (dbError) {
-        console.log('Using default score cap due to database unavailability');
-      }
-    }
-
-    // Prepare document data
-    const documentData = documents.map(doc => ({
-      filename: doc.filename,
-      originalName: doc.originalname,
-      path: doc.path,
-      size: doc.size,
-      mimetype: doc.mimetype,
-      uploadedAt: new Date()
-    }));
-
-    // Create evaluation record
-    const evaluationData = {
-      user: user._id,
-      country,
-      visaType,
-      documents: documentData,
-      scores: evaluation.scores,
-      totalScore: evaluation.totalScore,
-      cappedScore: finalScore,
-      summary: evaluation.summary,
-      recommendations: evaluation.recommendations,
-      likelihood: evaluation.likelihood,
-      partnerApiKey: apiKey || null,
-      emailSent: false
-    };
-
-    let savedEvaluation;
-    try {
-      savedEvaluation = await Evaluation.create(evaluationData);
-    } catch (dbError) {
-      console.log('MongoDB not available, using JSON storage');
-      savedEvaluation = { ...evaluationData, _id: `eval-${Date.now()}`, createdAt: new Date() };
-
-      // Save to JSON file as fallback
-      const dbPath = path.join(__dirname, 'db.json');
-      try {
-        const dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-        dbData.submissions.push(savedEvaluation);
-        fs.writeFileSync(dbPath, JSON.stringify(dbData, null, 2));
-      } catch (fileError) {
-        const dbData = { submissions: [savedEvaluation] };
-        fs.writeFileSync(dbPath, JSON.stringify(dbData, null, 2));
-      }
-    }
-
-    // Send email with results
-    try {
-      const emailResult = await emailService.sendEvaluationResults(email, name, {
-        ...savedEvaluation,
-        country,
-        visaType
-      });
-
-      if (emailResult.success && savedEvaluation._id) {
-        // Update email sent status if using MongoDB
-        try {
-          await Evaluation.findByIdAndUpdate(savedEvaluation._id, {
-            emailSent: true,
-            emailSentAt: new Date()
-          });
-        } catch (dbError) {
-          console.log('Could not update email status in database');
-        }
-      }
-    } catch (emailError) {
-      console.log('Email sending failed:', emailError.message);
-    }
-
-    // Return results to frontend
-    res.json({
-      score: finalScore,
-      summary: evaluation.summary,
-      likelihood: evaluation.likelihood,
-      recommendations: evaluation.recommendations,
-      scores: evaluation.scores,
-      evaluationId: savedEvaluation._id
-    });
-
-  } catch (error) {
-    console.error('Submission processing error:', error);
-    res.status(500).json({
-      error: 'Internal server error during evaluation processing'
-    });
-  }
-});
-
-// Partner API endpoints
-app.get('/api/partner/evaluations', authenticatePartner, async (req, res) => {
-  try {
-    const { page = 1, limit = 10, country, visaType } = req.query;
-    const partner = req.partner;
-
-    let query = {};
-    if (partner._id !== 'test-partner') {
-      query.partnerApiKey = partner.apiKey;
-    }
-
-    if (country) query.country = country;
-    if (visaType) query.visaType = visaType;
-
-    let evaluations;
-    try {
-      evaluations = await Evaluation.find(query)
-        .populate('user', 'name email')
-        .sort({ createdAt: -1 })
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
-        .exec();
-
-      const total = await Evaluation.countDocuments(query);
-
-      res.json({
-        evaluations: evaluations.map(eval => ({
-          id: eval._id,
-          user: eval.user,
-          country: eval.country,
-          visaType: eval.visaType,
-          score: eval.cappedScore,
-          likelihood: eval.likelihood,
-          createdAt: eval.createdAt,
-          emailSent: eval.emailSent
-        })),
-        totalPages: Math.ceil(total / limit),
-        currentPage: page,
-        total
-      });
-    } catch (dbError) {
-      // Fallback to JSON file
-      const dbPath = path.join(__dirname, 'db.json');
-      try {
-        const dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-        const filteredEvaluations = dbData.submissions.filter(submission => {
-          if (country && submission.country !== country) return false;
-          if (visaType && submission.visaType !== visaType) return false;
-          return true;
-        });
-
-        res.json({
-          evaluations: filteredEvaluations.slice((page - 1) * limit, page * limit),
-          totalPages: Math.ceil(filteredEvaluations.length / limit),
-          currentPage: page,
-          total: filteredEvaluations.length
-        });
-      } catch (fileError) {
-        res.json({ evaluations: [], totalPages: 0, currentPage: 1, total: 0 });
-      }
-    }
-  } catch (error) {
-    console.error('Partner API error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Partner statistics endpoint
-app.get('/api/partner/stats', authenticatePartner, async (req, res) => {
-  try {
-    const partner = req.partner;
-
-    let query = {};
-    if (partner._id !== 'test-partner') {
-      query.partnerApiKey = partner.apiKey;
-    }
-
-    try {
-      const stats = await Evaluation.aggregate([
-        { $match: query },
-        {
-          $group: {
-            _id: null,
-            totalEvaluations: { $sum: 1 },
-            averageScore: { $avg: '$cappedScore' },
-            excellentCount: { $sum: { $cond: [{ $eq: ['$likelihood', 'Excellent'] }, 1, 0] } },
-            goodCount: { $sum: { $cond: [{ $eq: ['$likelihood', 'Good'] }, 1, 0] } },
-            fairCount: { $sum: { $cond: [{ $eq: ['$likelihood', 'Fair'] }, 1, 0] } },
-            lowCount: { $sum: { $cond: [{ $eq: ['$likelihood', 'Low'] }, 1, 0] } },
-            veryLowCount: { $sum: { $cond: [{ $eq: ['$likelihood', 'Very Low'] }, 1, 0] } }
-          }
-        }
-      ]);
-
-      const result = stats[0] || {
-        totalEvaluations: 0,
-        averageScore: 0,
-        excellentCount: 0,
-        goodCount: 0,
-        fairCount: 0,
-        lowCount: 0,
-        veryLowCount: 0
-      };
-
-      res.json(result);
-    } catch (dbError) {
-      // Fallback to JSON file
-      const dbPath = path.join(__dirname, 'db.json');
-      try {
-        const dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-        const evaluations = dbData.submissions || [];
-
-        const stats = {
-          totalEvaluations: evaluations.length,
-          averageScore: evaluations.reduce((sum, eval) => sum + (eval.cappedScore || 0), 0) / evaluations.length || 0,
-          excellentCount: evaluations.filter(e => e.likelihood === 'Excellent').length,
-          goodCount: evaluations.filter(e => e.likelihood === 'Good').length,
-          fairCount: evaluations.filter(e => e.likelihood === 'Fair').length,
-          lowCount: evaluations.filter(e => e.likelihood === 'Low').length,
-          veryLowCount: evaluations.filter(e => e.likelihood === 'Very Low').length
-        };
-
-        res.json(stats);
-      } catch (fileError) {
-        res.json({
-          totalEvaluations: 0,
-          averageScore: 0,
-          excellentCount: 0,
-          goodCount: 0,
-          fairCount: 0,
-          lowCount: 0,
-          veryLowCount: 0
-        });
-      }
-    }
-  } catch (error) {
-    console.error('Partner stats error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url} - ${req.ip}`);
+  next();
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({
-    status: 'healthy',
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    services: {
-      database: 'connected', // You could add actual DB health check here
-      email: 'configured',
-      storage: 'available'
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0'
+  });
+});
+
+// API routes
+app.use('/api/visas', visaRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/partners', partnerRoutes);
+
+// Serve uploaded files (with basic security)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '1d',
+  setHeaders: (res, path) => {
+    // Prevent direct execution of uploaded files
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Disposition', 'attachment');
+  }
+}));
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Multi-Country Visa Evaluation API',
+    version: '1.0.0',
+    documentation: '/api/docs',
+    endpoints: {
+      visas: '/api/visas',
+      submissions: '/api/submissions',
+      partners: '/api/partners'
     }
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`📧 Email service: ${process.env.EMAIL_USER ? 'Configured' : 'Not configured'}`);
-  console.log(`🗄️  Database: MongoDB with JSON fallback`);
-  console.log(`🔑 Partner API: Available at /api/partner/*`);
+// API documentation endpoint
+app.get('/api/docs', (req, res) => {
+  res.json({
+    title: 'Multi-Country Visa Evaluation API Documentation',
+    version: '1.0.0',
+    endpoints: {
+      'GET /api/visas': 'Get all available visa data',
+      'GET /api/visas/:country': 'Get visa data for specific country',
+      'GET /api/visas/:country/:visaType': 'Get specific visa requirements',
+      'POST /api/submissions': 'Submit visa evaluation',
+      'GET /api/submissions/:id': 'Get specific evaluation',
+      'GET /api/submissions': 'Get evaluations (partner only)',
+      'POST /api/partners/register': 'Register new partner',
+      'GET /api/partners/profile': 'Get partner profile',
+      'PUT /api/partners/profile': 'Update partner profile',
+      'GET /api/partners/dashboard': 'Get partner dashboard data',
+      'POST /api/partners/regenerate-key': 'Regenerate API key'
+    },
+    authentication: {
+      'x-api-key': 'Partner API key (optional for submissions, required for partner endpoints)'
+    }
+  });
 });
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.url} not found`,
+    availableRoutes: [
+      'GET /',
+      'GET /health',
+      'GET /api/docs',
+      'GET /api/visas',
+      'POST /api/submissions',
+      'POST /api/partners/register'
+    ]
+  });
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  logger.error('Unhandled error:', error);
+
+  // Don't leak error details in production
+  const message = process.env.NODE_ENV === 'production'
+    ? 'Something went wrong!'
+    : error.message;
+
+  res.status(error.status || 500).json({
+    error: 'Internal Server Error',
+    message: message,
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+  });
+});
+
+// Start server
+const PORT = process.env.PORT || 3001;
+
+const startServer = async () => {
+  try {
+    // Connect to MongoDB
+    await connectDB();
+
+    // Start the server
+    app.listen(PORT, () => {
+      logger.info(`🚀 Server running on port ${PORT}`);
+      logger.info(`📝 API Documentation: http://localhost:${PORT}/api/docs`);
+      logger.info(`🏥 Health Check: http://localhost:${PORT}/health`);
+      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+      // Log important configuration
+      if (!process.env.GEMINI_API_KEY) {
+        logger.warn('⚠️  GEMINI_API_KEY not set - AI evaluation will use fallback logic');
+      }
+
+      if (!process.env.MONGODB_URI) {
+        logger.warn('⚠️  MONGODB_URI not set - using default MongoDB connection');
+      }
+    });
+
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+startServer();
+
+export default app;

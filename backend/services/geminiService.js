@@ -107,17 +107,45 @@ Please provide a comprehensive evaluation in the following JSON format (respond 
   ]
 }
 
-EVALUATION CRITERIA:
-- Education (25 points): Match with required education levels
-- Experience (20 points): Years of relevant work experience
-- Salary (20 points): Meets minimum salary requirements
-- Documents (15 points): Completeness of documentation
-- Awards (10 points): Professional recognition and achievements
-- Language (5 points): Language proficiency level
-- Employer (5 points): Employer recognition and sponsorship status
+EVALUATION CRITERIA (STRICT PRIORITY ORDER):
+1. Education (35 points): CRITICAL - Must meet minimum requirements. Low education = automatic low score
+   - PhD: 35 points (if required: Bachelor+)
+   - Master: 30 points (if required: Bachelor+)
+   - Bachelor: 25 points (if required: Bachelor+)
+   - Professional Cert: 15 points (rarely sufficient for skilled visas)
+   - High School: 5 points (typically disqualifying for skilled worker visas)
 
-Maximum success rate should be capped at 85% (score 85/100) to maintain realistic expectations.
-Provide 2-4 specific recommendations for improvement, prioritized by impact.
+2. Experience (25 points): ESSENTIAL - Years of relevant professional experience
+   - 10+ years: 25 points
+   - 5-9 years: 20 points
+   - 3-4 years: 15 points
+   - 1-2 years: 10 points
+   - 0 years: 0 points
+
+3. Salary (20 points): Must meet minimum thresholds
+   - 150%+ of minimum: 20 points
+   - 120-149% of minimum: 16 points
+   - 100-119% of minimum: 12 points
+   - 80-99% of minimum: 6 points
+   - Below 80%: 0 points (likely disqualifying)
+
+4. Sponsor Status (10 points): MAJOR ADVANTAGE
+   - Recognized/Approved sponsor: +10 points
+   - Regular employer: +3 points
+   - No sponsor/Self-employed: 0 points
+
+5. Documents (5 points): Completeness
+6. Language (3 points): Proficiency level
+7. Awards (2 points): Professional recognition
+
+IMPORTANT RULES:
+- If education doesn't meet minimum requirements: Maximum score = 35%
+- If salary below minimum: Maximum score = 45%
+- If no relevant experience for experience-required visas: Maximum score = 40%
+- Recognized sponsor provides significant boost (+15% to final score)
+- Maximum realistic success rate: 75% (even for perfect candidates)
+
+Be STRICT and REALISTIC. Most applications should score 30-60%. Only exceptional candidates with perfect qualifications should score above 70%.
 `;
   }
 
@@ -131,20 +159,20 @@ Provide 2-4 specific recommendations for improvement, prioritized by impact.
 
       const parsed = JSON.parse(jsonMatch[0]);
 
-      // Validate and sanitize the response
-      const score = Math.min(Math.max(parsed.overallScore || 0, 0), 85); // Cap at 85
+      // Validate and sanitize the response with realistic caps
+      const score = Math.min(Math.max(parsed.overallScore || 0, 0), 75); // Cap at 75
 
       return {
         score,
         likelihood: parsed.likelihood || this.calculateLikelihood(score),
         scores: {
-          education: Math.min(Math.max(parsed.scores?.education || 0, 0), 25),
-          experience: Math.min(Math.max(parsed.scores?.experience || 0, 0), 20),
+          education: Math.min(Math.max(parsed.scores?.education || 0, 0), 35),
+          experience: Math.min(Math.max(parsed.scores?.experience || 0, 0), 25),
           salary: Math.min(Math.max(parsed.scores?.salary || 0, 0), 20),
-          documents: Math.min(Math.max(parsed.scores?.documents || 0, 0), 15),
-          awards: Math.min(Math.max(parsed.scores?.awards || 0, 0), 10),
-          language: Math.min(Math.max(parsed.scores?.language || 0, 0), 5),
-          employer: Math.min(Math.max(parsed.scores?.employer || 0, 0), 5)
+          documents: Math.min(Math.max(parsed.scores?.documents || 0, 0), 5),
+          awards: Math.min(Math.max(parsed.scores?.awards || 0, 0), 2),
+          language: Math.min(Math.max(parsed.scores?.language || 0, 0), 3),
+          employer: Math.min(Math.max(parsed.scores?.employer || 0, 0), 10)
         },
         summary: parsed.summary || 'Evaluation completed successfully.',
         recommendations: parsed.recommendations || []
@@ -164,7 +192,7 @@ Provide 2-4 specific recommendations for improvement, prioritized by impact.
     const { educationLevel, experienceYears, currentSalary, languageProficiency,
             hasAwards, hasRecognizedEmployer, uploadedDocuments } = applicationData;
 
-    // Rule-based scoring
+    // STRICT REALISTIC SCORING SYSTEM
     let educationScore = 0;
     let experienceScore = 0;
     let salaryScore = 0;
@@ -172,65 +200,120 @@ Provide 2-4 specific recommendations for improvement, prioritized by impact.
     let awardsScore = 0;
     let languageScore = 0;
     let employerScore = 0;
+    let disqualifyingFactors = [];
 
-    // Education scoring
-    if (visaRequirements.requiredEducation.includes(educationLevel)) {
-      const educationLevels = ['High School', 'Professional Certification', 'Bachelor', 'Master', 'PhD'];
-      const level = educationLevels.indexOf(educationLevel);
-      educationScore = Math.min(15 + (level * 3), 25);
-    } else {
-      educationScore = 10;
+    // 1. EDUCATION SCORING (35 points) - MOST CRITICAL
+    const educationMeetsRequirement = visaRequirements.requiredEducation.includes(educationLevel);
+
+    if (educationLevel === 'PhD') {
+      educationScore = educationMeetsRequirement ? 35 : 20;
+    } else if (educationLevel === 'Master') {
+      educationScore = educationMeetsRequirement ? 30 : 15;
+    } else if (educationLevel === 'Bachelor') {
+      educationScore = educationMeetsRequirement ? 25 : 10;
+    } else if (educationLevel === 'Professional Certification') {
+      educationScore = educationMeetsRequirement ? 15 : 5;
+    } else if (educationLevel === 'High School') {
+      educationScore = 5;
+      if (!educationMeetsRequirement) {
+        disqualifyingFactors.push('Education level too low for this visa category');
+      }
     }
 
-    // Experience scoring
-    if (experienceYears >= visaRequirements.minExperience) {
-      experienceScore = Math.min(10 + (experienceYears * 2), 20);
+    // 2. EXPERIENCE SCORING (25 points) - SECOND MOST CRITICAL
+    if (experienceYears >= 10) {
+      experienceScore = 25;
+    } else if (experienceYears >= 5) {
+      experienceScore = 20;
+    } else if (experienceYears >= 3) {
+      experienceScore = 15;
+    } else if (experienceYears >= 1) {
+      experienceScore = 10;
     } else {
-      experienceScore = Math.max(experienceYears * 2, 0);
+      experienceScore = 0;
+      if (visaRequirements.minExperience > 0) {
+        disqualifyingFactors.push('Insufficient work experience for this visa category');
+      }
     }
 
-    // Salary scoring
+    // Penalty for not meeting minimum experience
+    if (experienceYears < visaRequirements.minExperience) {
+      experienceScore = Math.max(experienceScore - 10, 0);
+    }
+
+    // 3. SALARY SCORING (20 points) - THIRD MOST CRITICAL
     const salaryRatio = currentSalary / visaRequirements.minSalary;
-    if (salaryRatio >= 1) {
-      salaryScore = Math.min(15 + (salaryRatio - 1) * 10, 20);
+    if (salaryRatio >= 1.5) {
+      salaryScore = 20;
+    } else if (salaryRatio >= 1.2) {
+      salaryScore = 16;
+    } else if (salaryRatio >= 1.0) {
+      salaryScore = 12;
+    } else if (salaryRatio >= 0.8) {
+      salaryScore = 6;
+      disqualifyingFactors.push('Salary may be below minimum requirements');
     } else {
-      salaryScore = Math.max(salaryRatio * 15, 0);
+      salaryScore = 0;
+      disqualifyingFactors.push('Salary significantly below minimum requirements');
     }
 
-    // Documents scoring
+    // 4. SPONSOR/EMPLOYER SCORING (10 points) - MAJOR ADVANTAGE
+    if (hasRecognizedEmployer) {
+      employerScore = 10;
+    } else {
+      employerScore = 3; // Regular employer
+    }
+
+    // 5. DOCUMENTS SCORING (5 points)
     const expectedDocsCount = visaData[applicationData.country]?.documents[applicationData.visaType]?.length || 3;
     const uploadedCount = uploadedDocuments?.length || 0;
-    documentsScore = Math.min((uploadedCount / expectedDocsCount) * 15, 15);
+    documentsScore = Math.min((uploadedCount / expectedDocsCount) * 5, 5);
 
-    // Awards scoring
-    awardsScore = hasAwards ? 8 : 2;
+    // 6. LANGUAGE SCORING (3 points)
+    const languageLevels = { 'Beginner': 0.5, 'Intermediate': 1.5, 'Advanced': 2.5, 'Fluent': 3, 'Native': 3 };
+    languageScore = languageLevels[languageProficiency] || 0.5;
 
-    // Language scoring
-    const languageLevels = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3, 'Fluent': 4, 'Native': 5 };
-    languageScore = languageLevels[languageProficiency] || 1;
+    // 7. AWARDS SCORING (2 points)
+    awardsScore = hasAwards ? 2 : 0;
 
-    // Employer scoring
-    employerScore = hasRecognizedEmployer ? 5 : 2;
+    // Calculate base total
+    let totalScore = educationScore + experienceScore + salaryScore + documentsScore + awardsScore + languageScore + employerScore;
 
-    const totalScore = Math.min(
-      educationScore + experienceScore + salaryScore + documentsScore + awardsScore + languageScore + employerScore,
-      85 // Cap at 85
-    );
+    // Apply disqualifying factor penalties
+    if (!educationMeetsRequirement) {
+      totalScore = Math.min(totalScore, 35); // Cap at 35% if education doesn't meet requirements
+    }
+
+    if (salaryRatio < 1.0) {
+      totalScore = Math.min(totalScore, 45); // Cap at 45% if salary below minimum
+    }
+
+    if (experienceYears < visaRequirements.minExperience) {
+      totalScore = Math.min(totalScore, 40); // Cap at 40% if experience insufficient
+    }
+
+    // Sponsor bonus (applied after caps)
+    if (hasRecognizedEmployer) {
+      totalScore = Math.min(totalScore * 1.15, 75); // 15% boost for recognized sponsors, cap at 75%
+    }
+
+    // Final realistic cap
+    totalScore = Math.min(totalScore, 75);
 
     return {
       score: Math.round(totalScore),
       likelihood: this.calculateLikelihood(totalScore),
       scores: {
-        education: educationScore,
-        experience: experienceScore,
-        salary: salaryScore,
-        documents: documentsScore,
-        awards: awardsScore,
-        language: languageScore,
-        employer: employerScore
+        education: Math.round(educationScore),
+        experience: Math.round(experienceScore),
+        salary: Math.round(salaryScore),
+        documents: Math.round(documentsScore),
+        awards: Math.round(awardsScore),
+        language: Math.round(languageScore),
+        employer: Math.round(employerScore)
       },
-      summary: `Based on your profile, you have a ${this.calculateLikelihood(totalScore).toLowerCase()} chance of visa approval. Your strongest areas are ${this.getStrongestAreas({ education: educationScore, experience: experienceScore, salary: salaryScore })}.`,
-      recommendations: this.generateRecommendations(applicationData, {
+      summary: this.generateRealisticSummary(totalScore, disqualifyingFactors, hasRecognizedEmployer, applicationData),
+      recommendations: this.generateRealisticRecommendations(applicationData, {
         education: educationScore,
         experience: experienceScore,
         salary: salaryScore,
@@ -238,18 +321,103 @@ Provide 2-4 specific recommendations for improvement, prioritized by impact.
         awards: awardsScore,
         language: languageScore,
         employer: employerScore
-      }),
+      }, disqualifyingFactors, visaRequirements),
       processingTime: Date.now() - startTime,
-      geminiResponse: 'Fallback evaluation used'
+      geminiResponse: 'Realistic evaluation algorithm used'
     };
   }
 
   calculateLikelihood(score) {
-    if (score >= 75) return 'Excellent';
-    if (score >= 65) return 'Good';
-    if (score >= 50) return 'Fair';
-    if (score >= 35) return 'Low';
+    if (score >= 70) return 'Excellent';
+    if (score >= 60) return 'Good';
+    if (score >= 45) return 'Fair';
+    if (score >= 30) return 'Low';
     return 'Very Low';
+  }
+
+  generateRealisticSummary(score, disqualifyingFactors, hasRecognizedEmployer, applicationData) {
+    const likelihood = this.calculateLikelihood(score).toLowerCase();
+    let summary = `Based on your profile, you have a ${likelihood} chance of ${applicationData.visaType} approval for ${applicationData.country}.`;
+
+    if (disqualifyingFactors.length > 0) {
+      summary += ` However, there are some concerns: ${disqualifyingFactors[0]}.`;
+    }
+
+    if (hasRecognizedEmployer && score > 50) {
+      summary += ` Your recognized sponsor status significantly strengthens your application.`;
+    }
+
+    if (score < 30) {
+      summary += ` Your current profile may not meet the basic requirements for this visa category.`;
+    } else if (score >= 60) {
+      summary += ` Your qualifications align well with the visa requirements.`;
+    }
+
+    return summary;
+  }
+
+  generateRealisticRecommendations(applicationData, scores, disqualifyingFactors, visaRequirements) {
+    const recommendations = [];
+
+    // Education recommendations (highest priority)
+    if (scores.education < 20) {
+      recommendations.push({
+        category: "Education",
+        priority: "High",
+        suggestion: !visaRequirements.requiredEducation.includes(applicationData.educationLevel)
+          ? "Your education level does not meet the minimum requirements. Consider obtaining additional qualifications or targeting different visa categories."
+          : "Consider obtaining higher education qualifications or additional professional certifications to strengthen your profile."
+      });
+    }
+
+    // Experience recommendations (second priority)
+    if (scores.experience < 15) {
+      recommendations.push({
+        category: "Experience",
+        priority: "High",
+        suggestion: applicationData.experienceYears < visaRequirements.minExperience
+          ? `You need at least ${visaRequirements.minExperience} years of experience for this visa. Consider gaining more relevant work experience.`
+          : "Gain more relevant professional experience in your field to improve your eligibility."
+      });
+    }
+
+    // Salary recommendations (third priority)
+    if (scores.salary < 12) {
+      recommendations.push({
+        category: "Salary",
+        priority: "High",
+        suggestion: `Your current salary of $${applicationData.currentSalary} is below the typical requirement of $${visaRequirements.minSalary}. Negotiate a higher salary offer or seek positions that meet minimum requirements.`
+      });
+    }
+
+    // Sponsor recommendations
+    if (!applicationData.hasRecognizedEmployer) {
+      recommendations.push({
+        category: "Sponsorship",
+        priority: "Medium",
+        suggestion: "Seek employment with a recognized sponsor/employer. This provides a significant advantage in visa applications."
+      });
+    }
+
+    // Documents recommendations
+    if (scores.documents < 4) {
+      recommendations.push({
+        category: "Documentation",
+        priority: "Medium",
+        suggestion: "Upload all required documents to complete your application. Missing documents can significantly impact your evaluation."
+      });
+    }
+
+    // Language recommendations
+    if (scores.language < 2) {
+      recommendations.push({
+        category: "Language",
+        priority: "Low",
+        suggestion: "Improve your language proficiency through formal training or certification to demonstrate communication skills."
+      });
+    }
+
+    return recommendations.slice(0, 4); // Limit to top 4 recommendations
   }
 
   getStrongestAreas(scores) {

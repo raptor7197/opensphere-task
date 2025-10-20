@@ -174,7 +174,7 @@ app.use((error, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 const startServer = async () => {
   try {
@@ -190,11 +190,11 @@ const startServer = async () => {
 
       // Log important configuration
       if (!process.env.GEMINI_API_KEY) {
-        logger.warn('⚠️  GEMINI_API_KEY not set - AI evaluation will use fallback logic');
+        logger.warn('  GEMINI_API_KEY not set - AI evaluation will use fallback logic');
       }
 
       if (!process.env.MONGODB_URI) {
-        logger.warn('⚠️  MONGODB_URI not set - using default MongoDB connection');
+        logger.warn('  MONGODB_URI not set - using default MongoDB connection');
       }
     });
 

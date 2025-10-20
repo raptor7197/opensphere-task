@@ -1,7 +1,87 @@
 
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = 'http://localhost:3002';
+
+// Loading screen component
+const LoadingScreen = ({ stage, progress }) => {
+  return (
+    <div className="w-full max-w-2xl p-8 space-y-8 bg-gray-900 border border-gray-700 rounded-lg">
+      <div className="text-center">
+        <div className="inline-block mb-6">
+          <svg className="animate-spin h-16 w-16 text-green-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+
+        <h2 className="text-2xl font-bold text-white mb-2">Processing Your Application</h2>
+        <p className="text-lg text-gray-300 mb-6">{stage}</p>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
+          <div
+            className="bg-gradient-to-r from-green-500 to-green-400 h-3 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+
+        <p className="text-sm text-gray-400">{Math.round(progress)}% Complete</p>
+      </div>
+
+      {/* Processing Steps Indicator */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+        <div className={`p-3 rounded-lg border ${progress >= 16 ? 'border-green-500 bg-green-900/20' : 'border-gray-600 bg-gray-800'}`}>
+          <div className={`w-6 h-6 rounded-full mx-auto mb-2 flex items-center justify-center ${progress >= 16 ? 'bg-green-500' : 'bg-gray-600'}`}>
+            {progress >= 16 ? '✓' : '1'}
+          </div>
+          <p className="text-xs text-gray-300">Preparation</p>
+        </div>
+
+        <div className={`p-3 rounded-lg border ${progress >= 32 ? 'border-green-500 bg-green-900/20' : 'border-gray-600 bg-gray-800'}`}>
+          <div className={`w-6 h-6 rounded-full mx-auto mb-2 flex items-center justify-center ${progress >= 32 ? 'bg-green-500' : 'bg-gray-600'}`}>
+            {progress >= 32 ? '✓' : '2'}
+          </div>
+          <p className="text-xs text-gray-300">Upload</p>
+        </div>
+
+        <div className={`p-3 rounded-lg border ${progress >= 48 ? 'border-green-500 bg-green-900/20' : 'border-gray-600 bg-gray-800'}`}>
+          <div className={`w-6 h-6 rounded-full mx-auto mb-2 flex items-center justify-center ${progress >= 48 ? 'bg-green-500' : 'bg-gray-600'}`}>
+            {progress >= 48 ? '✓' : '3'}
+          </div>
+          <p className="text-xs text-gray-300">Analysis</p>
+        </div>
+
+        <div className={`p-3 rounded-lg border ${progress >= 64 ? 'border-green-500 bg-green-900/20' : 'border-gray-600 bg-gray-800'}`}>
+          <div className={`w-6 h-6 rounded-full mx-auto mb-2 flex items-center justify-center ${progress >= 64 ? 'bg-green-500' : 'bg-gray-600'}`}>
+            {progress >= 64 ? '✓' : '4'}
+          </div>
+          <p className="text-xs text-gray-300">Requirements</p>
+        </div>
+
+        <div className={`p-3 rounded-lg border ${progress >= 80 ? 'border-green-500 bg-green-900/20' : 'border-gray-600 bg-gray-800'}`}>
+          <div className={`w-6 h-6 rounded-full mx-auto mb-2 flex items-center justify-center ${progress >= 80 ? 'bg-green-500' : 'bg-gray-600'}`}>
+            {progress >= 80 ? '✓' : '5'}
+          </div>
+          <p className="text-xs text-gray-300">AI Evaluation</p>
+        </div>
+
+        <div className={`p-3 rounded-lg border ${progress >= 96 ? 'border-green-500 bg-green-900/20' : 'border-gray-600 bg-gray-800'}`}>
+          <div className={`w-6 h-6 rounded-full mx-auto mb-2 flex items-center justify-center ${progress >= 96 ? 'bg-green-500' : 'bg-gray-600'}`}>
+            {progress >= 96 ? '✓' : '6'}
+          </div>
+          <p className="text-xs text-gray-300">Results</p>
+        </div>
+      </div>
+
+      <div className="text-center">
+        <p className="text-sm text-gray-400">
+          Using advanced AI to evaluate your visa application...
+        </p>
+      </div>
+    </div>
+  );
+};
 
 // A simple card to display the result
 const ResultCard = ({ result, onReset }) => {
@@ -40,32 +120,46 @@ const ResultCard = ({ result, onReset }) => {
           <h3 className="text-lg font-semibold text-white mb-3">Score Breakdown</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-300">Education Qualification</span>
-              <span className="text-white font-medium">{result.scores.education || 0}/25</span>
+              <span className="text-gray-300"> Education Qualification</span>
+              <span className={`font-medium ${result.scores.education >= 25 ? 'text-green-400' : result.scores.education >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {result.scores.education || 0}/35
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">Work Experience</span>
-              <span className="text-white font-medium">{result.scores.experience || 0}/20</span>
+              <span className="text-gray-300"> Work Experience</span>
+              <span className={`font-medium ${result.scores.experience >= 20 ? 'text-green-400' : result.scores.experience >= 10 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {result.scores.experience || 0}/25
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">Salary/Income</span>
-              <span className="text-white font-medium">{result.scores.salary || 0}/20</span>
+              <span className="text-gray-300"> Salary/Income</span>
+              <span className={`font-medium ${result.scores.salary >= 16 ? 'text-green-400' : result.scores.salary >= 8 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {result.scores.salary || 0}/20
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">Document Completeness</span>
-              <span className="text-white font-medium">{result.scores.documents || 0}/15</span>
+              <span className="text-gray-300">Sponsor/Employer</span>
+              <span className={`font-medium ${result.scores.employer >= 8 ? 'text-green-400' : result.scores.employer >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {result.scores.employer || 0}/10
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">Recognition/Awards</span>
-              <span className="text-white font-medium">{result.scores.awards || 0}/10</span>
+              <span className="text-gray-300"> Document Completeness</span>
+              <span className={`font-medium ${result.scores.documents >= 4 ? 'text-green-400' : result.scores.documents >= 2 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {result.scores.documents || 0}/5
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">Language Proficiency</span>
-              <span className="text-white font-medium">{result.scores.language || 0}/5</span>
+              <span className="text-gray-300"> Language Proficiency</span>
+              <span className={`font-medium ${result.scores.language >= 2.5 ? 'text-green-400' : result.scores.language >= 1.5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {result.scores.language || 0}/3
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">Employer Status</span>
-              <span className="text-white font-medium">{result.scores.employer || 0}/5</span>
+              <span className="text-gray-300"> Recognition/Awards</span>
+              <span className={`font-medium ${result.scores.awards >= 1 ? 'text-green-400' : 'text-gray-400'}`}>
+                {result.scores.awards || 0}/2
+              </span>
             </div>
           </div>
         </div>
@@ -131,12 +225,74 @@ export default function App() {
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isLoadingVisaData, setIsLoadingVisaData] = useState(true);
+  const [loadingStage, setLoadingStage] = useState('');
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
+    console.log('Fetching visa data from:', `${API_URL}/api/visas`);
     fetch(`${API_URL}/api/visas`)
-      .then(res => res.json())
-      .then(data => setVisaData(data))
-      .catch(err => console.error("Failed to fetch visa data:", err));
+      .then(res => {
+        console.log('Response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Visa data received:', data);
+        setVisaData(data);
+        setIsLoadingVisaData(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch visa data:", err);
+        // Fallback data in case API is not available
+        const fallbackData = {
+          "United States": {
+            visas: ["O-1A", "O-1B", "H-1B"],
+            documents: {
+              "O-1A": ["Résumé", "Personal Statement", "Letters of Recommendation"],
+              "O-1B": ["Résumé", "Portfolio", "Press Clippings"],
+              "H-1B": ["Résumé", "Employment Contract", "Educational Transcripts"],
+            }
+          },
+          "Ireland": {
+            visas: ["Critical Skills Employment Permit"],
+            documents: {
+              "Critical Skills Employment Permit": ["Résumé", "Employment Contract", "Police Report"]
+            }
+          },
+          "Poland": {
+            visas: ["Work Permit Type C"],
+            documents: {
+              "Work Permit Type C": ["Résumé", "Employment Contract", "Proof of Accommodation"]
+            }
+          },
+          "France": {
+            visas: ["Talent Passport", "Salarié en Mission"],
+            documents: {
+              "Talent Passport": ["Résumé", "Business Plan", "Proof of Financial Means"],
+              "Salarié en Mission": ["Résumé", "Assignment Letter", "Proof of Social Security"]
+            }
+          },
+          "Netherlands": {
+            visas: ["Knowledge Migrant Permit"],
+            documents: {
+              "Knowledge Migrant Permit": ["Résumé", "Employment Contract", "Health Insurance"]
+            }
+          },
+          "Germany": {
+            visas: ["EU Blue Card", "ICT Permit"],
+            documents: {
+              "EU Blue Card": ["Résumé", "University Degree", "Employment Contract"],
+              "ICT Permit": ["Résumé", "Assignment Letter", "Proof of Qualification"]
+            }
+          }
+        };
+        console.log('Using fallback visa data');
+        setVisaData(fallbackData);
+        setIsLoadingVisaData(false);
+      });
   }, []);
 
   const handleInputChange = (e) => {
@@ -186,7 +342,21 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setUploadProgress(0);
+    setLoadingProgress(0);
+    setLoadingStage('Preparing your application...');
+
+    // Simulate loading stages
+    const stages = [
+      { stage: 'Preparing your application...', duration: 500 },
+      { stage: 'Uploading documents...', duration: 800 },
+      { stage: 'Analyzing your profile...', duration: 1000 },
+      { stage: 'Checking visa requirements...', duration: 700 },
+      { stage: 'AI evaluation in progress...', duration: 900 },
+      { stage: 'Generating recommendations...', duration: 600 }
+    ];
+
+    let currentProgress = 0;
+    const progressIncrement = 100 / stages.length;
 
     const submissionData = new FormData();
     submissionData.append('name', formData.name);
@@ -206,24 +376,61 @@ export default function App() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/submissions`, {
+      // Start the API request but don't await it immediately
+      const responsePromise = fetch(`${API_URL}/api/submissions`, {
         method: 'POST',
         body: submissionData,
       });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || `HTTP error! status: ${response.status}`);
+
+      // Show loading stages
+      for (let i = 0; i < stages.length; i++) {
+        setLoadingStage(stages[i].stage);
+        setLoadingProgress(currentProgress);
+
+        await new Promise(resolve => setTimeout(resolve, stages[i].duration));
+        currentProgress += progressIncrement;
+        setLoadingProgress(Math.min(currentProgress, 95));
       }
-      
+
+      // Wait for the actual response
+      const response = await responsePromise;
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        let errorMessage;
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || `HTTP error! status: ${response.status}`;
+        } catch {
+          errorMessage = `HTTP error! status: ${response.status} - ${errorText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      setLoadingStage('Finalizing results...');
+      setLoadingProgress(100);
+
+      const result = await response.json();
+      console.log('Submission result:', result);
+
+      // Small delay to show 100% completion
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       setEvaluationResult(result);
     } catch (error) {
       console.error('Submission failed:', error);
-      alert(`Submission failed: ${error.message}`);
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        alert('Network error: Unable to connect to the server. Please check if the backend is running.');
+      } else {
+        alert(`Submission failed: ${error.message}`);
+      }
     } finally {
       setIsLoading(false);
-      setUploadProgress(0);
+      setLoadingProgress(0);
+      setLoadingStage('');
     }
   };
   
@@ -261,7 +468,9 @@ export default function App() {
       </header>
 
       <main className="w-full max-w-lg">
-        {evaluationResult ? (
+        {isLoading ? (
+          <LoadingScreen stage={loadingStage} progress={loadingProgress} />
+        ) : evaluationResult ? (
           <ResultCard result={evaluationResult} onReset={resetForm} />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 bg-gray-900 border border-gray-700 p-8 rounded-lg">
@@ -293,12 +502,19 @@ export default function App() {
                 value={formData.country}
                 onChange={handleInputChange}
                 required
-                className="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                disabled={isLoadingVisaData}
+                className="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50"
               >
-                <option value="">Select Country</option>
-                {Object.keys(visaData).map(country => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
+                <option value="">
+                  {isLoadingVisaData ? "Loading countries..." : "Select Country"}
+                </option>
+                {!isLoadingVisaData && Object.keys(visaData).length > 0 ? (
+                  Object.keys(visaData).map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))
+                ) : !isLoadingVisaData ? (
+                  <option disabled>No countries available</option>
+                ) : null}
               </select>
               <select
                 name="visaType"
